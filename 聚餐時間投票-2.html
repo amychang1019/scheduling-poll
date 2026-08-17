@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聚餐時間投票</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#20303A;
+    --ink-soft:#4A5C63;
+    --paper:#FBF9F5;
+    --card:#FFFFFF;
+    --line:#E4DFD3;
+    --gold:#C98A2E;
+    --gold-soft:#F3E4C6;
+    --sage:#6E8F76;
+    --sage-soft:#E4ECE3;
+    --busy:#C1543D;
+    --busy-soft:#F6DFD9;
+    --shadow: 0 1px 2px rgba(32,48,58,0.06), 0 8px 24px rgba(32,48,58,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(32,48,58,0.05) 1px, transparent 1px);
+    background-size: 18px 18px;
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:720px;
+    margin:0 auto;
+    padding:32px 20px 80px;
+  }
+  header.hero{
+    position:relative;
+    padding:28px 24px 26px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  header.hero::before{
+    content:"";
+    position:absolute;
+    top:-40px; right:-40px;
+    width:160px; height:160px;
+    background:radial-gradient(circle, var(--gold) 0%, transparent 70%);
+    opacity:0.35;
+  }
+  .eyebrow{
+    font-size:12.5px;
+    letter-spacing:0.16em;
+    color:var(--gold-soft);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  h1{
+    font-family:'Noto Serif TC', serif;
+    font-weight:800;
+    font-size:23px;
+    line-height:1.55;
+    margin:0 0 6px;
+    position:relative;
+  }
+  .hero-sub{
+    font-size:13.5px;
+    color:#C9D3D6;
+    line-height:1.7;
+    margin:0;
+    position:relative;
+  }
+  .hero-range{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--paper);
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    padding:6px 12px;
+    border-radius:100px;
+    position:relative;
+  }
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:5px;
+    margin-bottom:22px;
+    box-shadow:var(--shadow);
+  }
+  .tab-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:11px 10px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-soft);
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .tab-btn.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .field-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 18px;
+    margin-bottom:16px;
+    box-shadow:var(--shadow);
+  }
+  .field-card label{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+  .field-card input[type=text]{
+    width:100%;
+    padding:11px 13px;
+    font-size:15px;
+    font-family:inherit;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    background:var(--paper);
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .field-card input[type=text]:focus{border-color:var(--gold);}
+  .hint{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.6;}
+
+  .week-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .week-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 18px;
+    background:var(--sage-soft);
+    border-bottom:1px dashed var(--line);
+  }
+  .week-head .wk-no{
+    font-family:'Noto Serif TC', serif;
+    font-weight:700;
+    font-size:12.5px;
+    color:var(--sage);
+    letter-spacing:0.06em;
+  }
+  .week-head .wk-range{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .slot-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .slot-row:last-child{border-bottom:none;}
+  .slot-label{
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--ink);
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .slot-label .day-tag{
+    font-size:11px;
+    font-weight:700;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:2px 7px;
+    border-radius:6px;
+  }
+  .toggle-btn{
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    padding:8px 14px;
+    border-radius:100px;
+    cursor:pointer;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .toggle-btn.busy{
+    background:var(--busy-soft);
+    border-color:var(--busy);
+    color:var(--busy);
+  }
+
+  .submit-btn{
+    width:100%;
+    padding:15px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:12px;
+    font-family:inherit;
+    font-size:15.5px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:6px;
+    box-shadow:var(--shadow);
+    transition:transform .1s ease, opacity .15s ease;
+  }
+  .submit-btn:hover{opacity:0.92;}
+  .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  .status-msg{
+    text-align:center;
+    font-size:13px;
+    padding:10px;
+    border-radius:9px;
+    margin-top:12px;
+    display:none;
+  }
+  .status-msg.show{display:block;}
+  .status-msg.ok{background:var(--sage-soft);color:var(--sage);}
+  .status-msg.err{background:var(--busy-soft);color:var(--busy);}
+
+  .privacy-note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:14px;
+    line-height:1.6;
+  }
+
+  /* results */
+  .summary-strip{
+    display:flex;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .summary-box{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 12px;
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .summary-box .num{
+    font-family:'Noto Serif TC', serif;
+    font-size:26px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .summary-box .lbl{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .rank-title{
+    font-family:'Noto Serif TC', serif;
+    font-size:16px;
+    font-weight:700;
+    margin:20px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .rank-title .bar{width:4px;height:16px;background:var(--gold);border-radius:2px;}
+
+  .rank-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    box-shadow:var(--shadow);
+  }
+  .rank-card.gold{border-color:var(--gold); background:linear-gradient(0deg, var(--gold-soft), var(--card) 70%);}
+  .medal{
+    font-family:'Noto Serif TC', serif;
+    font-weight:800;
+    font-size:18px;
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--ink);
+    color:var(--paper);
+    flex-shrink:0;
+  }
+  .rank-card.gold .medal{background:var(--gold);}
+  .rank-body{flex:1; min-width:0;}
+  .rank-body .rname{font-size:14.5px; font-weight:700; color:var(--ink);}
+  .rank-body .rcount{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .rank-dots{display:flex; gap:3px; margin-top:7px;}
+  .rank-dot{width:9px;height:9px;border-radius:2px;background:var(--line);}
+  .rank-dot.on{background:var(--sage);}
+
+  .full-table{margin-top:22px;}
+  .ft-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .ft-row .ft-label{
+    width:120px;
+    flex-shrink:0;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .ft-bar-track{
+    flex:1;
+    height:8px;
+    background:var(--sage-soft);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .ft-bar-fill{
+    height:100%;
+    background:var(--sage);
+    border-radius:5px;
+  }
+  .ft-count{
+    width:44px;
+    text-align:right;
+    font-size:12px;
+    color:var(--ink-soft);
+    flex-shrink:0;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    line-height:1.8;
+  }
+
+  .respondent-list{
+    margin-top:22px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:2;
+  }
+  .respondent-list .rl-title{font-weight:700; color:var(--ink); margin-bottom:4px; display:block;}
+  .chip{
+    display:inline-block;
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:3px 10px;
+    border-radius:100px;
+    margin:2px 4px 2px 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>聚餐時間投票</div>
+    <h1>請將已有安排、不方便聚餐的時間標示出來，會提供前 5 個時間結果給姑婆，供他挑選，用作聚餐時間安排的參考。</h1>
+    <p class="hero-sub">每個時段點一下即可標示「不方便」，沒有點的時段預設為「可以」。填完姓名後送出，統計結果會即時更新給大家看。</p>
+    <div class="hero-range">📅 投票區間：8/21 (五) — 9/30 (三)</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="fill">填寫問卷</button>
+    <button class="tab-btn" data-tab="results">查看統計結果</button>
+  </div>
+
+  <!-- FILL PANEL -->
+  <div class="panel active" id="panel-fill">
+    <div class="field-card">
+      <label for="nameInput">你的名字</label>
+      <input type="text" id="nameInput" placeholder="例如：小美" maxlength="20">
+      <div class="hint">若重複填寫同一個名字，會覆蓋你上一次的紀錄。</div>
+    </div>
+
+    <div id="weeksContainer"></div>
+
+    <button class="submit-btn" id="submitBtn">送出我的時間</button>
+    <div class="status-msg" id="statusMsg"></div>
+    <div class="privacy-note">送出的姓名與時段選擇，所有拿到此連結的人都看得到統計結果。</div>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="panel" id="panel-results">
+    <div id="resultsContainer">
+      <div class="empty-state">載入統計資料中…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WEEKDAY_CHAR = ['日','一','二','三','四','五','六'];
+
+const mkDay = (dt) => `${dt.getMonth()+1}/${dt.getDate()}(${WEEKDAY_CHAR[dt.getDay()]})`;
+const mkSlot = (dt, period) => ({
+  id: `${dt.getMonth()+1}-${dt.getDate()}-${period === '晚餐' ? 'D' : 'L'}`,
+  label: period,
+  day: mkDay(dt)
+});
+const rangeStr = (a,b) => `${a.getMonth()+1}/${a.getDate()} — ${b.getMonth()+1}/${b.getDate()}`;
+
+function buildSlots(){
+  const start = new Date(2026,7,21); // Fri 8/21/2026
+  const regularEnd = new Date(2026,8,18); // last regular Fri/Sat/Sun week starts 9/18
+  const weeks = [];
+  let d = new Date(start);
+  while (d <= regularEnd){
+    const fri = new Date(d);
+    const sat = new Date(d); sat.setDate(sat.getDate()+1);
+    const sun = new Date(d); sun.setDate(sun.getDate()+2);
+    const slots = [
+      mkSlot(fri, '晚餐'),
+      mkSlot(sat, '午餐'), mkSlot(sat, '晚餐'),
+      mkSlot(sun, '午餐'), mkSlot(sun, '晚餐'),
+    ];
+    weeks.push({rangeLabel: rangeStr(fri, sun), slots});
+    d.setDate(d.getDate()+7);
+  }
+
+  // Week 6 is a holiday week (連假): 9/24 dinner only, 9/25-9/28 each with lunch + dinner
+  const thu924 = new Date(2026,8,24);
+  const fri925 = new Date(2026,8,25);
+  const sat926 = new Date(2026,8,26);
+  const sun927 = new Date(2026,8,27);
+  const mon928 = new Date(2026,8,28);
+  const holidaySlots = [
+    mkSlot(thu924, '晚餐'),
+    mkSlot(fri925, '午餐'), mkSlot(fri925, '晚餐'),
+    mkSlot(sat926, '午餐'), mkSlot(sat926, '晚餐'),
+    mkSlot(sun927, '午餐'), mkSlot(sun927, '晚餐'),
+    mkSlot(mon928, '午餐'), mkSlot(mon928, '晚餐'),
+  ];
+  weeks.push({rangeLabel: rangeStr(thu924, mon928) + '（連假）', slots: holidaySlots});
+
+  return weeks;
+}
+
+const WEEKS = buildSlots();
+const ALL_SLOTS = WEEKS.flatMap(w => w.slots);
+const selectedBusy = new Set();
+
+function renderFillPanel(){
+  const container = document.getElementById('weeksContainer');
+  container.innerHTML = WEEKS.map((w, wi) => {
+    const rangeLabel = w.rangeLabel;
+    const rows = w.slots.map(s => `
+      <div class="slot-row">
+        <div class="slot-label"><span class="day-tag">${s.day}</span>${s.label}</div>
+        <button type="button" class="toggle-btn" data-id="${s.id}">可以</button>
+      </div>
+    `).join('');
+    return `
+      <div class="week-card">
+        <div class="week-head">
+          <span class="wk-no">第 ${wi+1} 週</span>
+          <span class="wk-range">${rangeLabel}</span>
+        </div>
+        ${rows}
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      if (selectedBusy.has(id)){
+        selectedBusy.delete(id);
+        btn.classList.remove('busy');
+        btn.textContent = '可以';
+      } else {
+        selectedBusy.add(id);
+        btn.classList.add('busy');
+        btn.textContent = '不方便';
+      }
+    });
+  });
+}
+
+function showStatus(msg, ok){
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status-msg show ' + (ok ? 'ok' : 'err');
+}
+
+async function submitResponse(){
+  const nameInput = document.getElementById('nameInput');
+  const name = nameInput.value.trim();
+  if (!name){
+    showStatus('請先輸入你的名字', false);
+    return;
+  }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+
+  const safeKeyName = name.replace(/[\s\/\\'"]/g, '_').slice(0,60);
+  const key = `response_${safeKeyName}`;
+  const payload = {
+    name: name,
+    busy: Array.from(selectedBusy),
+    submittedAt: new Date().toISOString()
+  };
+
+  try {
+    const result = await window.storage.set(key, JSON.stringify(payload), true);
+    if (!result){
+      throw new Error('storage set returned null');
+    }
+    showStatus(`已送出，謝謝 ${name}！可以切換到「查看統計結果」看看大家的狀況。`, true);
+    switchTab('results');
+    loadResults();
+  } catch(e){
+    console.error(e);
+    showStatus('送出失敗，請再試一次', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '送出我的時間';
+  }
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('panel-fill').classList.toggle('active', tab === 'fill');
+  document.getElementById('panel-results').classList.toggle('active', tab === 'results');
+  if (tab === 'results') loadResults();
+}
+
+function slotDisplayLabel(id){
+  const [m,d,period] = id.split('-');
+  const periodLabel = period === 'D' ? '晚餐' : '午餐';
+  // find weekday from WEEKS
+  for (const w of WEEKS){
+    for (const s of w.slots){
+      if (s.id === id) return `${s.day} ${s.label}`;
+    }
+  }
+  return `${m}/${d} ${periodLabel}`;
+}
+
+async function loadResults(){
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = `<div class="empty-state">載入統計資料中…</div>`;
+
+  let keysResult;
+  try {
+    keysResult = await window.storage.list('response_', true);
+  } catch(e){
+    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷。</div>`;
+    return;
+  }
+
+  const keys = (keysResult && keysResult.keys) ? keysResult.keys : [];
+  if (keys.length === 0){
+    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷，<br>把這個連結分享出去，等大家填完再回來看看吧！</div>`;
+    return;
+  }
+
+  const responses = [];
+  for (const k of keys){
+    try {
+      const r = await window.storage.get(k, true);
+      if (r && r.value){
+        responses.push(JSON.parse(r.value));
+      }
+    } catch(e){ /* skip unreadable entry */ }
+  }
+
+  if (responses.length === 0){
+    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷。</div>`;
+    return;
+  }
+
+  const total = responses.length;
+  const busyCount = {};
+  ALL_SLOTS.forEach(s => busyCount[s.id] = 0);
+  responses.forEach(r => {
+    (r.busy || []).forEach(id => {
+      if (busyCount[id] !== undefined) busyCount[id]++;
+    });
+  });
+
+  const ranked = ALL_SLOTS.map(s => {
+    const busy = busyCount[s.id] || 0;
+    return {
+      id: s.id,
+      label: slotDisplayLabel(s.id),
+      busy,
+      available: total - busy
+    };
+  }).sort((a,b) => b.available - a.available || a.busy - b.busy);
+
+  const top3 = ranked.slice(0,5);
+  const rest = ranked.slice(5);
+
+  const summaryHtml = `
+    <div class="summary-strip">
+      <div class="summary-box"><div class="num">${total}</div><div class="lbl">已填寫人數</div></div>
+      <div class="summary-box"><div class="num">${ALL_SLOTS.length}</div><div class="lbl">候選時段</div></div>
+    </div>
+  `;
+
+  const medalChar = ['① ','② ','③ ','④ ','⑤ '];
+  const top3Html = `
+    <div class="rank-title"><span class="bar"></span>最多人方便的前五個時間</div>
+    ${top3.map((r,i) => {
+      const dots = Array.from({length: total}).map((_,idx) => `<div class="rank-dot ${idx < r.available ? 'on' : ''}"></div>`).join('');
+      return `
+        <div class="rank-card ${i===0 ? 'gold' : ''}">
+          <div class="medal">${medalChar[i]}</div>
+          <div class="rank-body">
+            <div class="rname">${r.label}</div>
+            <div class="rcount">${r.available} / ${total} 人可以　·　${r.busy} 人不方便</div>
+            <div class="rank-dots">${dots}</div>
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+
+  const restHtml = `
+    <div class="full-table">
+      <div class="rank-title"><span class="bar"></span>所有時段統計</div>
+      ${ranked.map(r => {
+        const pct = total > 0 ? Math.round((r.available/total)*100) : 0;
+        return `
+          <div class="ft-row">
+            <div class="ft-label">${r.label}</div>
+            <div class="ft-bar-track"><div class="ft-bar-fill" style="width:${pct}%"></div></div>
+            <div class="ft-count">${r.available}/${total}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  const namesHtml = `
+    <div class="respondent-list">
+      <span class="rl-title">已填寫：</span>
+      ${responses.map(r => `<span class="chip">${r.name}</span>`).join('')}
+    </div>
+  `;
+
+  container.innerHTML = summaryHtml + top3Html + restHtml + namesHtml;
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+document.getElementById('submitBtn').addEventListener('click', submitResponse);
+
+renderFillPanel();
+loadResults();
+</script>
+</body>
+</html>
