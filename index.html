@@ -433,6 +433,9 @@
 </div>
 
 <script>
+// ⚠️ 請把下面這行換成你部署 Google Apps Script 後拿到的網址（結尾是 /exec）
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxj2IoxuFgHiNgU3E0oLF3Tfubac714MNmLtPV--VqdDvtV_ybCIQ6gj46vbFkPQQ3b/exec';
+
 const WEEKDAY_CHAR = ['日','一','二','三','四','五','六'];
 
 const mkDay = (dt) => `${dt.getMonth()+1}/${dt.getDate()}(${WEEKDAY_CHAR[dt.getDay()]})`;
@@ -533,12 +536,14 @@ async function submitResponse(){
     showStatus('請先輸入你的名字', false);
     return;
   }
+  if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+    showStatus('尚未設定資料儲存網址，請聯絡問卷製作者', false);
+    return;
+  }
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = '送出中…';
 
-  const safeKeyName = name.replace(/[\s\/\\'"]/g, '_').slice(0,60);
-  const key = `response_${safeKeyName}`;
   const payload = {
     name: name,
     busy: Array.from(selectedBusy),
@@ -546,16 +551,20 @@ async function submitResponse(){
   };
 
   try {
-    const result = await window.storage.set(key, JSON.stringify(payload), true);
-    if (!result){
-      throw new Error('storage set returned null');
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data || !data.ok){
+      throw new Error('write failed');
     }
     showStatus(`已送出，謝謝 ${name}！可以切換到「查看統計結果」看看大家的狀況。`, true);
     switchTab('results');
     loadResults();
   } catch(e){
     console.error(e);
-    showStatus('送出失敗，請再試一次', false);
+    showStatus('送出失敗，請確認網路連線後再試一次', false);
   } finally {
     btn.disabled = false;
     btn.textContent = '送出我的時間';
@@ -585,32 +594,23 @@ async function loadResults(){
   const container = document.getElementById('resultsContainer');
   container.innerHTML = `<div class="empty-state">載入統計資料中…</div>`;
 
-  let keysResult;
+  if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+    container.innerHTML = `<div class="empty-state">尚未設定資料儲存網址，請聯絡問卷製作者。</div>`;
+    return;
+  }
+
+  let responses = [];
   try {
-    keysResult = await window.storage.list('response_', true);
+    const res = await fetch(SCRIPT_URL + '?action=list');
+    const data = await res.json();
+    responses = (data && data.responses) ? data.responses : [];
   } catch(e){
-    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷。</div>`;
+    container.innerHTML = `<div class="empty-state">讀取統計資料失敗，請稍後再試一次。</div>`;
     return;
-  }
-
-  const keys = (keysResult && keysResult.keys) ? keysResult.keys : [];
-  if (keys.length === 0){
-    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷，<br>把這個連結分享出去，等大家填完再回來看看吧！</div>`;
-    return;
-  }
-
-  const responses = [];
-  for (const k of keys){
-    try {
-      const r = await window.storage.get(k, true);
-      if (r && r.value){
-        responses.push(JSON.parse(r.value));
-      }
-    } catch(e){ /* skip unreadable entry */ }
   }
 
   if (responses.length === 0){
-    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷。</div>`;
+    container.innerHTML = `<div class="empty-state">目前還沒有任何人填寫問卷，<br>把這個連結分享出去，等大家填完再回來看看吧！</div>`;
     return;
   }
 
